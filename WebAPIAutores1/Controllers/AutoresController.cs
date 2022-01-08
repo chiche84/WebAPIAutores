@@ -3,6 +3,8 @@ using WebAPIAutores1.Entidades;
 using Microsoft.EntityFrameworkCore;
 using WebAPIAutores1.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace WebAPIAutores1.Controllers
 {
@@ -12,15 +14,26 @@ namespace WebAPIAutores1.Controllers
     public class AutoresController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly IConfiguration configuration;
 
         public ApplicationDbContext context { get; }
-        public AutoresController(ApplicationDbContext context, IMapper mapper)
+        public AutoresController(ApplicationDbContext context, IMapper mapper, IConfiguration configuration)
         {
             this.context = context;
             this.mapper = mapper;
+            this.configuration = configuration;
         }
 
-
+        [HttpGet("configuraciones")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public ActionResult<string> ObtenerConfiguraciones()
+        {
+            //proveedores de configuracion
+            //iconfiguration sirve para tomar valores de los proveedores de configuracion: appsettings, secrets.json, lauchnsettings.. o proveedores de azure o sistema operativo
+            //orden de declaracion de los proveedores de config es importante:
+            //en caso de mismo nombre de campo, se toma el valor del ultimo proveedor agregado
+            return configuration["datos:apellido"];
+        }
         [HttpGet]      
         public async Task<ActionResult<IEnumerable<AutorDTO>>> Get()
         {
