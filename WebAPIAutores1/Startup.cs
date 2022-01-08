@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EscueladeDanzasCore.Filters;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 namespace WebAPIAutores1
@@ -14,7 +15,13 @@ namespace WebAPIAutores1
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddJsonOptions(x=> x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            services.AddControllers(opciones=>
+            {
+                opciones.Filters.Add(typeof(MiFiltrodeAcccion));
+            })
+                .AddJsonOptions(x=> x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+                .AddNewtonsoftJson();
+
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));            
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
