@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPIAutores1.DTOs;
@@ -10,15 +13,18 @@ namespace WebAPIAutores1.Controllers
 {
     [Route("api/libros/{libroId:int}/comentarios")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ComentariosController : ControllerBase
     {
         private readonly ApplicationDbContext applicationDbContext;
         private readonly IMapper mapper;
+        private readonly UserManager<IdentityUser> userManager;
 
-        public ComentariosController(ApplicationDbContext applicationDbContext, IMapper mapper)
+        public ComentariosController(ApplicationDbContext applicationDbContext, IMapper mapper, UserManager<IdentityUser> userManager)
         {
             this.applicationDbContext = applicationDbContext;
             this.mapper = mapper;
+            this.userManager = userManager;
         }
         
         [HttpGet]
@@ -37,8 +43,14 @@ namespace WebAPIAutores1.Controllers
      
         // POST api/<ComentariosController>
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult> Post([FromRoute] int libroId, ComentarioCreacionDTO comentarioCreacionDTO)
         {
+            //esto se puede realizar solo porque tenemos el authorice, sino no vienen los claims
+            //no me va a dar error porque tengo el authorice en el controller, pero igualmente puedo guardar con un comentario anomimo porque tengo el anonymous
+            var email = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault().Value;
+            var usuario = await userManager.FindByEmailAsync(email);
+            var usuarioId = usuario.Id;
             var libro = await applicationDbContext.Libros.AnyAsync(libroBD=> libroBD.Id == libroId);
             if (!libro)
             {
@@ -47,6 +59,7 @@ namespace WebAPIAutores1.Controllers
 
             Comentario comentario = mapper.Map<Comentario>(comentarioCreacionDTO);
             comentario.LibroId = libroId;
+            comentario.UsuarioId = usuarioId;
             applicationDbContext.Add(comentario);
             await applicationDbContext.SaveChangesAsync();
 

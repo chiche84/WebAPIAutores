@@ -10,7 +10,7 @@ namespace WebAPIAutores1.Controllers
 {
     [ApiController]
     [Route("api/autores")]
-
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
     public class AutoresController : ControllerBase
     {
         private readonly IMapper mapper;
@@ -25,7 +25,7 @@ namespace WebAPIAutores1.Controllers
         }
 
         [HttpGet("configuraciones")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [AllowAnonymous] //permite que alguien sin token ingrese a este end point
         public ActionResult<string> ObtenerConfiguraciones()
         {
             //proveedores de configuracion
