@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WebAPIAutores1.DTOs;
+using WebAPIAutores1.Services;
 
 namespace WebAPIAutores1.Controllers
 {
@@ -18,12 +20,61 @@ namespace WebAPIAutores1.Controllers
         private readonly UserManager<IdentityUser> userManager;
         private readonly IConfiguration configuration;
         private readonly SignInManager<IdentityUser> signInManager;
-
-        public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration, SignInManager<IdentityUser> signInManager)
+        private readonly HashService hashService;
+        private readonly IDataProtector dataProtector;
+        public CuentasController(UserManager<IdentityUser> userManager, 
+                                    IConfiguration configuration, 
+                                    SignInManager<IdentityUser> signInManager,
+                                    IDataProtectionProvider dataProtectionProvider,
+                                    HashService hashService)
         {
             this.userManager = userManager;
             this.configuration = configuration;
             this.signInManager = signInManager;
+            this.hashService = hashService;
+            this.dataProtector = dataProtectionProvider.CreateProtector("valor_unico_y_secreto");
+        }
+
+        [HttpGet("hash/{textoPlano}")]
+        public ActionResult RealizarHash(string textoPlano) //para probar que genera hash aleatorios de acuerdo a la sales aleatorias
+        {
+            var resultado1 = hashService.Hash(textoPlano);
+            var resultado2 = hashService.Hash(textoPlano);
+            return Ok(new
+            {
+                textoPlano,
+                resultado1,
+                resultado2
+            });
+        }
+
+        [HttpGet("encriptar")]
+        public ActionResult Encriptar()
+        {
+            var texto = "Florencia Anabel Vilte";
+            var textoCifrado = dataProtector.Protect(texto);
+            var textoDesencriptado = dataProtector.Unprotect(textoCifrado);
+            return Ok(new 
+            {
+                texto,
+                textoCifrado,
+                textoDesencriptado
+            });
+        }
+        [HttpGet("encriptarPorTiempo")]
+        public ActionResult EncriptarPorTiempo()
+        {
+            var protectorLimitadoPorTiempo = dataProtector.ToTimeLimitedDataProtector();            
+            var texto = "Florencia Anabel Vilte";
+            var textoCifrado = protectorLimitadoPorTiempo.Protect(texto, lifetime: TimeSpan.FromSeconds(5));//el tiempo q tiene la aplicacion para descifrar el texto, si pasa el tiempo ya no se puede recuperar el texto cifrado
+            Thread.Sleep(4995);
+            var textoDesencriptado = protectorLimitadoPorTiempo.Unprotect(textoCifrado);
+            return Ok(new
+            {
+                texto,
+                textoCifrado,
+                textoDesencriptado
+            });
         }
         [HttpPost("registrar")]
         public async Task<ActionResult<RespuestaAutenticacionDTO>> Registrar(CredencialesUsuarioDTO credencialesUsuarioDTO)

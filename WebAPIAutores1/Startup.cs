@@ -9,6 +9,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 
+using WebAPIAutores1.Services;
+
 namespace WebAPIAutores1
 {
     public class Startup
@@ -79,6 +81,17 @@ namespace WebAPIAutores1
                 options.AddPolicy("EsAdmin", politica => politica.RequireClaim("EsAdmin"));
             });
 
+            services.AddDataProtection();
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+               {
+                   builder.WithOrigins("https://apirequest.io").AllowAnyMethod().AllowAnyHeader();
+               });
+            });
+
+            services.AddTransient<HashService>();
         }
 
         
@@ -94,6 +107,8 @@ namespace WebAPIAutores1
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 
