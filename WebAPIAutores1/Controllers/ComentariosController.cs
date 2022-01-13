@@ -27,14 +27,14 @@ namespace WebAPIAutores1.Controllers
             this.userManager = userManager;
         }
         
-        [HttpGet]
+        [HttpGet(Name ="obtenerComentarios")]
         public async Task<ActionResult<List<ComentarioDTO>>> Get(int libroId)
         {
             var comentarios = await applicationDbContext.Comentarios.Where(comentarioDB => comentarioDB.LibroId == libroId).ToListAsync();
             return mapper.Map<List<ComentarioDTO>>(comentarios);
         }
 
-        [HttpGet("{id:int}", Name ="ObtenerComentario")]
+        [HttpGet("{id:int}", Name ="obtenerComentario")]
         public async Task<ActionResult<ComentarioDTO>> GetById(int id)
         {
             var comentario = await applicationDbContext.Comentarios.FirstOrDefaultAsync(comentarioDB=> comentarioDB.Id == id);
@@ -42,7 +42,7 @@ namespace WebAPIAutores1.Controllers
         }
      
         // POST api/<ComentariosController>
-        [HttpPost]
+        [HttpPost(Name ="crearComentario")]
         [AllowAnonymous]
         public async Task<ActionResult> Post([FromRoute] int libroId, ComentarioCreacionDTO comentarioCreacionDTO)
         {
@@ -64,10 +64,10 @@ namespace WebAPIAutores1.Controllers
             await applicationDbContext.SaveChangesAsync();
 
             ComentarioDTO comentarioDTO = mapper.Map<ComentarioDTO>(comentario);
-            return CreatedAtRoute("ObtenerComentario", new { id = comentarioDTO.Id, libroId = libroId }, comentarioDTO);
+            return CreatedAtRoute("obtenerComentario", new { id = comentarioDTO.Id, libroId = libroId }, comentarioDTO);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name ="modificarComentario")]
         public async Task<ActionResult> Put([FromRoute] int libroId, [FromRoute] int id, ComentarioCreacionDTO comentarioCreacionDTO)
         {
             var existeLibro = await applicationDbContext.Libros.AnyAsync(libroBD => libroBD.Id == libroId);
@@ -89,7 +89,7 @@ namespace WebAPIAutores1.Controllers
             await applicationDbContext.SaveChangesAsync();
 
             ComentarioDTO comentarioDTO = mapper.Map<ComentarioDTO>(comentario);
-            return CreatedAtRoute("ObtenerComentario", new { id = id, libroId = libroId }, comentarioDTO);
+            return CreatedAtRoute("obtenerComentario", new { id = id, libroId = libroId }, comentarioDTO);
         }
        
     }

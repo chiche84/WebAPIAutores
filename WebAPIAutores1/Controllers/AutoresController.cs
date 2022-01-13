@@ -34,7 +34,7 @@ namespace WebAPIAutores1.Controllers
             //en caso de mismo nombre de campo, se toma el valor del ultimo proveedor agregado
             return configuration["datos:apellido"];
         }
-        [HttpGet]      
+        [HttpGet( Name ="obtenerAutores")]      
         public async Task<ActionResult<IEnumerable<AutorDTO>>> Get()
         {
             var autores = await context.Autores                
@@ -42,7 +42,7 @@ namespace WebAPIAutores1.Controllers
             return mapper.Map<List<AutorDTO>>(autores);
         }
 
-        [HttpGet("{id:int}", Name ="ObtenerAutor")]
+        [HttpGet("{id:int}", Name ="obtenerAutor")]
         public async Task<ActionResult<AutorDTOconLibros>> Get(int id)
         {
             var autor = await context.Autores
@@ -54,11 +54,20 @@ namespace WebAPIAutores1.Controllers
                 return NotFound();
             }
 
-            
-            return mapper.Map<AutorDTOconLibros>(autor);
+
+            var autorDTO = mapper.Map<AutorDTOconLibros>(autor);
+            GenerarEnlaces(autorDTO);
+            return autorDTO;
         }
 
-        [HttpGet("{nombre}")]
+        private void GenerarEnlaces(AutorDTO autorDTO)
+        {
+            autorDTO.Enlaces.Add(new DatoHATEOAS(Url.Link("obtenerAutor", new {id = autorDTO.Id}), "Obtener-Autor", "GET" ));
+            autorDTO.Enlaces.Add(new DatoHATEOAS(Url.Link("modificarAutor", new {id = autorDTO.Id}), "Modificar-Autor", "PUT" ));
+            autorDTO.Enlaces.Add(new DatoHATEOAS(Url.Link("eliminarAutor", new {id = autorDTO.Id}), "Eliminar-Autor", "DELETE" ));
+        }
+
+        [HttpGet("{nombre}", Name ="obtenerAutoresPorNombre")]
         public async Task<ActionResult<IEnumerable<AutorDTO>>> Get(string nombre)
         {
             var autores = await context.Autores.Where(autorBD=> autorBD.Nombre.Contains(nombre)).ToListAsync();   
@@ -67,10 +76,11 @@ namespace WebAPIAutores1.Controllers
                 return NotFound();
             }
 
-            return mapper.Map<List<AutorDTO>>(autores);
+            var autorDTO = mapper.Map<List<AutorDTO>>(autores);           
+            return autorDTO;
         }
 
-        [HttpPost]
+        [HttpPost(Name ="crearAutor")]
         public async Task<ActionResult> Post([FromBody] AutorCreacionDTO autorCreacionDTO)
         {
             var existeAutor = await context.Autores.AnyAsync(autorBD=> autorBD.Nombre == autorCreacionDTO.Nombre);
@@ -86,10 +96,11 @@ namespace WebAPIAutores1.Controllers
             await context.SaveChangesAsync();
 
             AutorDTO autorDTO = mapper.Map<AutorDTO>(autor);
-            return CreatedAtRoute("ObtenerAutor", new { id = autorDTO.Id }, autorDTO);
+            
+            return CreatedAtRoute("obtenerAutor", new { id = autorDTO.Id }, autorDTO);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name ="modificarAutor")]
         public async Task<ActionResult> Put(AutorCreacionDTO autorCreacionDTO, int id)
         {
             bool existe = context.Autores.AnyAsync(predicate => predicate.Id == id).Result;
@@ -104,7 +115,7 @@ namespace WebAPIAutores1.Controllers
             await context.SaveChangesAsync();
             return NoContent();
         }
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name ="eliminarAutor")]
         public async Task<ActionResult> Delete(int id)
         {
             bool existe = context.Autores.AnyAsync(predicate => predicate.Id == id).Result;

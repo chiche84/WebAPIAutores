@@ -22,7 +22,7 @@ namespace WebAPIAutores1.Controllers
         }
 
 
-        [HttpGet("{id:int}", Name ="ObtenerLibro")]
+        [HttpGet("{id:int}", Name ="obtenerLibro")]
         public async Task<ActionResult<LibroDTOconAutores>> Get(int id )
         {
             var libro = await applicationDbContext.Libros.
@@ -39,7 +39,7 @@ namespace WebAPIAutores1.Controllers
             return mapper.Map<LibroDTOconAutores>(libro);
         }
 
-        [HttpPost]
+        [HttpPost(Name ="crearLibro")]
         public async Task<ActionResult> Post(LibroCreacionDTO libroCreacionDTO)
         {
             if (libroCreacionDTO.AutoresIds == null || libroCreacionDTO.AutoresIds.Count == 0)
@@ -60,9 +60,9 @@ namespace WebAPIAutores1.Controllers
             await applicationDbContext.SaveChangesAsync();
 
             LibroDTO libroDTO = mapper.Map<LibroDTO>(libro);
-            return CreatedAtRoute("ObtenerLibro", new { id = libroDTO.Id }, libroDTO);
+            return CreatedAtRoute("obtenerLibro", new { id = libroDTO.Id }, libroDTO);
         }
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name ="modificarLibro")]
         public async Task<ActionResult> Put(LibroCreacionDTO libroCreacionDTO, int id)
         {
             if (libroCreacionDTO.AutoresIds == null || libroCreacionDTO.AutoresIds.Count == 0)
@@ -87,7 +87,7 @@ namespace WebAPIAutores1.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id:int}", Name ="patchLibro")]
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<LibroPatchDTO> patchDocument)
         {
             if (patchDocument == null)
@@ -124,7 +124,7 @@ namespace WebAPIAutores1.Controllers
             //}
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name ="eliminarLibro")]
         public async Task<ActionResult> Delete(int id)
         {
             bool existe = applicationDbContext.Libros.AnyAsync(predicate => predicate.Id == id).Result;
