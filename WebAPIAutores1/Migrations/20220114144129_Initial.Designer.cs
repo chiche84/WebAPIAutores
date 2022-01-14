@@ -12,8 +12,8 @@ using WebAPIAutores1;
 namespace WebAPIAutores1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220108231503_sistemausuarios")]
-    partial class sistemausuarios
+    [Migration("20220114144129_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -272,9 +272,14 @@ namespace WebAPIAutores1.Migrations
                     b.Property<int>("LibroId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UsuarioId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LibroId");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Comentarios");
                 });
@@ -377,6 +382,12 @@ namespace WebAPIAutores1.Migrations
                         .HasForeignKey("LibroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("WebAPIAutores1.Entidades.Autor", b =>
